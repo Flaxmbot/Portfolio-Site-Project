@@ -62,6 +62,7 @@ export function ProposalForm() {
   const [state, formAction] = useActionState(handleGenerateProposal, initialState);
   const [isSending, setIsSending] = useState(false);
   const [proposalSent, setProposalSent] = useState(false);
+  const [editableProposal, setEditableProposal] = useState("");
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -88,7 +89,7 @@ export function ProposalForm() {
         projectGoals: formValues.projectGoals,
         projectTimeline: formValues.projectTimeline,
         projectBudget: formValues.projectBudget,
-        generatedProposal: state.proposal,
+        generatedProposal: editableProposal, // Use the editable proposal content
         status: "sent",
         createdAt: serverTimestamp(),
       });
@@ -136,26 +137,32 @@ export function ProposalForm() {
     }
   }, [state.message, toast]);
 
-  if (state.proposal) {
-    // Parse and format the proposal content
-    const formatProposal = (content: string) => {
-      return content
-        // Remove any remaining parentheses and content within them
-        .replace(/\([^)]*\)/g, '')
-        // Remove asterisks and bullet formatting artifacts
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
-        .replace(/\*(.*?)\*/g, '') // Remove single asterisks without making italic
-        .replace(/^\s*[-*+]\s+/gm, '') // Remove bullet point markers
-        // Clean up section headers by making them bold
-        .replace(/^(\d+\.\s*[A-Z][^:\n]*):?\s*$/gm, '<strong>$1</strong>')
-        // Handle paragraphs and line breaks
-        .replace(/\n\n+/g, '</p><p>') // Multiple newlines to paragraphs
-        .replace(/\n/g, '<br>') // Single newlines to breaks
-        // Clean up extra spaces
-        .replace(/\s+/g, ' ')
-        .trim();
-    };
+  // Set editable proposal when state.proposal changes
+  useEffect(() => {
+    if (state.proposal) {
+      setEditableProposal(formatProposal(state.proposal));
+    }
+  }, [state.proposal]);
 
+  // Parse and format the proposal content
+  const formatProposal = (content: string) => {
+    return content
+      // Remove any remaining parentheses and content within them
+      .replace(/\([^)]*\)/g, '')
+      // Remove asterisks and bullet formatting artifacts
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting
+      .replace(/^\s*[-*+]\s+/gm, '') // Remove bullet point markers
+      // Clean up section headers
+      .replace(/^(\d+\.\s*[A-Z][^:\n]*):?\s*$/gm, '$1')
+      // Handle paragraphs and line breaks
+      .replace(/\n\n+/g, '\n\n') // Multiple newlines to paragraphs
+      // Clean up extra spaces
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  if (state.proposal) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -169,11 +176,10 @@ export function ProposalForm() {
               <h2 className="text-2xl font-headline font-bold text-primary">Your Proposal Outline is Ready!</h2>
             </div>
             
-            <div 
-              className="prose prose-invert max-w-none mb-6 p-4 bg-muted/20 rounded-lg border"
-              dangerouslySetInnerHTML={{ 
-                __html: `<p>${formatProposal(state.proposal)}</p>` 
-              }}
+            <Textarea
+              value={editableProposal}
+              onChange={(e) => setEditableProposal(e.target.value)}
+              className="min-h-[300px] mb-6 p-4 bg-muted/20 rounded-lg border resize-y"
             />
             
             <div className="flex flex-col sm:flex-row gap-4">
@@ -217,7 +223,7 @@ export function ProposalForm() {
         </Card>
       </motion.div>
     );
-  }
+ }
 
   return (
     <Card>
