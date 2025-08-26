@@ -92,7 +92,7 @@ export function PresetSwitcher({ currentPreset, onPresetChange, className }: Pre
           >
             <div className="space-y-3">
               <h3 className="font-semibold text-sm text-foreground">UI Presets</h3>
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2">
                 {presets.map((preset) => {
                   const Icon = preset.icon;
                   const isActive = currentPreset === preset.id;
@@ -106,10 +106,11 @@ export function PresetSwitcher({ currentPreset, onPresetChange, className }: Pre
                       }}
                       className={cn(
                         'flex items-center gap-3 p-3 rounded-md text-left transition-all duration-200 hover:bg-accent',
+                        'w-full min-w-0', // Make buttons take full width and handle overflow
                         isActive && 'bg-accent border border-primary/20'
                       )}
                     >
-                      <Icon className={cn('h-4 w-4', preset.color)} />
+                      <Icon className={cn('h-4 w-4 flex-shrink-0', preset.color)} />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm truncate">{preset.name}</div>
                         <div className="text-xs text-muted-foreground truncate">
@@ -117,7 +118,7 @@ export function PresetSwitcher({ currentPreset, onPresetChange, className }: Pre
                         </div>
                       </div>
                       {isActive && (
-                        <div className="h-2 w-2 rounded-full bg-primary" />
+                        <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                       )}
                     </button>
                   );

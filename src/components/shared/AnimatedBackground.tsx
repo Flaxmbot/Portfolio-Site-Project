@@ -588,17 +588,17 @@ export function AnimatedBackground({
       const time = timeRef.current;
       ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
       
-      // More dynamic waves with faster movement and brighter colors
-      for (let i = 0; i < 6; i++) {
+      // Ocean wave-like animation with gentle movement
+      for (let i = 0; i < 5; i++) {
         ctx.beginPath();
         ctx.moveTo(0, canvas.offsetHeight / 2);
         
-        // Faster, more complex wave patterns
-        for (let x = 0; x <= canvas.offsetWidth; x += 4) {
+        // Gentle, flowing wave patterns like ocean waves
+        for (let x = 0; x <= canvas.offsetWidth; x += 5) {
           const y = canvas.offsetHeight / 2 +
-            Math.sin((x * 0.02) + (time * 0.005 * (1.5 + i * 0.4))) * (40 + i * 15) +
-            Math.sin((x * 0.03) + (time * 0.005 * 2.0)) * (35 + i * 10) +
-            Math.sin((x * 0.05) + (time * 0.005 * 3.0)) * (25 + i * 5);
+            Math.sin((x * 0.015) + (time * 0.3 + i * 0.5)) * (20 + i * 8) +
+            Math.sin((x * 0.025) + (time * 0.2 + i * 0.3)) * (15 + i * 5) +
+            Math.sin((x * 0.04) + (time * 0.1 + i * 0.2)) * (10 + i * 3);
           ctx.lineTo(x, y);
         }
         
@@ -606,27 +606,27 @@ export function AnimatedBackground({
         ctx.lineTo(0, canvas.offsetHeight);
         ctx.closePath();
         
-        // Vibrant gradients with reduced opacity for dynamic preset
+        // Ocean wave colors with low intensity (blues and greens)
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.offsetHeight);
-        const hue = 200 + i * 12; // Blue to purple range
-        gradient.addColorStop(0, `hsla(${hue}, 90%, 75%, 0.05)`);
-        gradient.addColorStop(0.3, `hsla(${hue + 10}, 85%, 70%, 0.07)`);
-        gradient.addColorStop(0.6, `hsla(${hue + 20}, 80%, 65%, 0.1)`);
-        gradient.addColorStop(1, `hsla(${hue + 30}, 75%, 60%, 0.12)`);
+        const hue = 180 + i * 3; // Ocean blue to teal range
+        gradient.addColorStop(0, `hsla(${hue}, 60%, 60%, 0.03)`);
+        gradient.addColorStop(0.3, `hsla(${hue + 5}, 5%, 55%, 0.05)`);
+        gradient.addColorStop(0.6, `hsla(${hue + 10}, 50%, 50%, 0.07)`);
+        gradient.addColorStop(1, `hsla(${hue + 15}, 45%, 45%, 0.09)`);
         
         ctx.fillStyle = gradient;
         ctx.fill();
         
-        // More prominent particle effects on waves with reduced intensity
-        for (let j = 0; j < 9; j++) {
-          const waveX = (canvas.offsetWidth / 9) * j + Math.sin(time * 0.003 * 1.0 + j) * 30;
+        // Subtle foam-like particle effects on waves
+        for (let j = 0; j < 6; j++) {
+          const waveX = (canvas.offsetWidth / 6) * j + Math.sin(time * 0.2 + j * 0.7) * 20;
           const waveY = canvas.offsetHeight / 2 +
-            Math.sin((waveX * 0.015) + (time * 0.003 * (1.5 + i * 0.4))) * (35 + i * 15) +
-            Math.sin((waveX * 0.025) + (time * 0.003 * 2.0)) * (30 + i * 10);
+            Math.sin((waveX * 0.015) + (time * 0.3 + i * 0.5)) * (20 + i * 8) +
+            Math.sin((waveX * 0.025) + (time * 0.2 + i * 0.3)) * (15 + i * 5);
               
           ctx.beginPath();
-          ctx.arc(waveX, waveY, 4 + i * 0.7, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${hue + 15}, 95%, 80%, 0.3)`;
+          ctx.arc(waveX, waveY, 2 + i * 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${hue + 10}, 70%, 85%, 0.15)`;
           ctx.fill();
         }
       }
