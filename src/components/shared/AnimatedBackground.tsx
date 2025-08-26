@@ -596,9 +596,9 @@ export function AnimatedBackground({
         // Faster, more complex wave patterns
         for (let x = 0; x <= canvas.offsetWidth; x += 4) {
           const y = canvas.offsetHeight / 2 +
-            Math.sin((x * 0.015) + (time * 0.003 * (1.5 + i * 0.4))) * (35 + i * 15) +
-            Math.sin((x * 0.025) + (time * 0.003 * 2.0)) * (30 + i * 10) +
-            Math.sin((x * 0.04) + (time * 0.003 * 3.0)) * (20 + i * 5);
+            Math.sin((x * 0.02) + (time * 0.005 * (1.5 + i * 0.4))) * (40 + i * 15) +
+            Math.sin((x * 0.03) + (time * 0.005 * 2.0)) * (35 + i * 10) +
+            Math.sin((x * 0.05) + (time * 0.005 * 3.0)) * (25 + i * 5);
           ctx.lineTo(x, y);
         }
         
@@ -606,18 +606,18 @@ export function AnimatedBackground({
         ctx.lineTo(0, canvas.offsetHeight);
         ctx.closePath();
         
-        // Vibrant gradients with higher opacity for dynamic preset
+        // Vibrant gradients with reduced opacity for dynamic preset
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.offsetHeight);
         const hue = 200 + i * 12; // Blue to purple range
-        gradient.addColorStop(0, `hsla(${hue}, 90%, 75%, 0.1)`);
-        gradient.addColorStop(0.3, `hsla(${hue + 10}, 85%, 70%, 0.15)`);
-        gradient.addColorStop(0.6, `hsla(${hue + 20}, 80%, 65%, 0.2)`);
-        gradient.addColorStop(1, `hsla(${hue + 30}, 75%, 60%, 0.25)`);
+        gradient.addColorStop(0, `hsla(${hue}, 90%, 75%, 0.05)`);
+        gradient.addColorStop(0.3, `hsla(${hue + 10}, 85%, 70%, 0.07)`);
+        gradient.addColorStop(0.6, `hsla(${hue + 20}, 80%, 65%, 0.1)`);
+        gradient.addColorStop(1, `hsla(${hue + 30}, 75%, 60%, 0.12)`);
         
         ctx.fillStyle = gradient;
         ctx.fill();
         
-        // More prominent particle effects on waves
+        // More prominent particle effects on waves with reduced intensity
         for (let j = 0; j < 9; j++) {
           const waveX = (canvas.offsetWidth / 9) * j + Math.sin(time * 0.003 * 1.0 + j) * 30;
           const waveY = canvas.offsetHeight / 2 +
@@ -626,7 +626,7 @@ export function AnimatedBackground({
               
           ctx.beginPath();
           ctx.arc(waveX, waveY, 4 + i * 0.7, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${hue + 15}, 95%, 80%, 0.6)`;
+          ctx.fillStyle = `hsla(${hue + 15}, 95%, 80%, 0.3)`;
           ctx.fill();
         }
       }
@@ -684,10 +684,10 @@ export function AnimatedBackground({
       
       // Cosmic geometric shapes with star-like effects
       for (let i = 0; i < 20; i++) {
-        const x = (canvas.offsetWidth / 4) * (1 + Math.cos(time * 0.002 * 0.6 + i * 0.5));
-        const y = (canvas.offsetHeight / 4) * (1 + Math.sin(time * 0.002 * 0.4 + i * 0.3));
-        const size = 8 + Math.sin(time * 0.002 * 1.5 + i) * 5;
-        const rotation = time * 0.002 * 0.4 + i * 0.5;
+        const x = (canvas.offsetWidth / 4) * (1 + Math.cos(time * 0.3 + i * 0.5));
+        const y = (canvas.offsetHeight / 4) * (1 + Math.sin(time * 0.2 + i * 0.3));
+        const size = 8 + Math.sin(time * 0.5 + i) * 5;
+        const rotation = time * 0.4 + i * 0.5;
         const sides = 4 + (i % 5); // Varying polygon sides (4-8 sides)
         
         ctx.save();
