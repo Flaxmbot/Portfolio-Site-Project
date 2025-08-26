@@ -25,6 +25,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { ProfessionalProposalDisplay } from "./ProfessionalProposalDisplay";
 
 const formSchema = z.object({
   clientName: z.string().min(2, "Client name must be at least 2 characters."),
@@ -63,6 +64,14 @@ export function ProposalForm() {
   const [isSending, setIsSending] = useState(false);
   const [proposalSent, setProposalSent] = useState(false);
   const [editableProposal, setEditableProposal] = useState("");
+  const [formValues, setFormValues] = useState({
+    clientName: "",
+    projectName: "",
+    projectDescription: "",
+    projectGoals: "",
+    projectTimeline: "",
+    projectBudget: "",
+  });
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -81,7 +90,6 @@ export function ProposalForm() {
 
     setIsSending(true);
     try {
-      const formValues = form.getValues();
       await addDoc(collection(db, "proposals"), {
         clientName: formValues.clientName,
         projectName: formValues.projectName,
@@ -140,29 +148,36 @@ export function ProposalForm() {
   // Set editable proposal when state.proposal changes
   useEffect(() => {
     if (state.proposal) {
-      setEditableProposal(formatProposal(state.proposal));
+      setEditableProposal(state.proposal);
     }
   }, [state.proposal]);
 
-  // Parse and format the proposal content
-  const formatProposal = (content: string) => {
-    return content
-      // Remove any remaining parentheses and content within them
-      .replace(/\([^)]*\)/g, '')
-      // Remove asterisks and bullet formatting artifacts
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting
-      .replace(/^\s*[-*+]\s+/gm, '') // Remove bullet point markers
-      // Clean up section headers
-      .replace(/^(\d+\.\s*[A-Z][^:\n]*):?\s*$/gm, '$1')
-      // Handle paragraphs and line breaks
-      .replace(/\n\n+/g, '\n\n') // Multiple newlines to paragraphs
-      // Clean up extra spaces
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
+  // Update form values when form changes
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      setFormValues(value as any);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   if (state.proposal) {
+    // Try to parse the generated proposal as JSON, fallback to plain text
+    let parsedProposal = null;
+    try {
+      parsedProposal = JSON.parse(state.proposal);
+    } catch (e) {
+      // If parsing fails, use the proposal as plain text
+      parsedProposal = {
+        proposalTitle: formValues.projectName || "Project Proposal",
+        sections: [
+          {
+            title: "Introduction",
+            content: state.proposal
+          }
+        ]
+      };
+    }
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -173,13 +188,25 @@ export function ProposalForm() {
           <CardContent className="p-8">
             <div className="flex items-center gap-2 mb-4">
               <FileText className="h-6 w-6 text-primary" />
-              <h2 className="text-2xl font-headline font-bold text-primary">Your Proposal Outline is Ready!</h2>
+              <h2 className="text-2xl font-headline font-bold text-primary">Your Professional Proposal</h2>
+            </div>
+            
+            <div className="mb-6">
+              <ProfessionalProposalDisplay
+                proposalTitle={parsedProposal.proposalTitle}
+                sections={parsedProposal.sections}
+                clientName={formValues.clientName}
+                projectName={formValues.projectName}
+                projectBudget={formValues.projectBudget}
+                projectTimeline={formValues.projectTimeline}
+              />
             </div>
             
             <Textarea
               value={editableProposal}
               onChange={(e) => setEditableProposal(e.target.value)}
-              className="min-h-[300px] mb-6 p-4 bg-muted/20 rounded-lg border resize-y"
+              className="min-h-[200px] mb-6 p-4 bg-muted/20 rounded-lg border resize-y"
+              placeholder="Edit the JSON proposal content here..."
             />
             
             <div className="flex flex-col sm:flex-row gap-4">

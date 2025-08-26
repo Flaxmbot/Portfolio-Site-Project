@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type PresetMode = 'simple' | 'enhanced' | 'dynamic' | 'minimal' | 'cosmic';
+export type PresetMode = 'simple' | 'enhanced' | 'dynamic' | 'minimal' | 'cosmic' | 'quantum';
 
 interface PresetContextType {
   preset: PresetMode;
@@ -20,7 +20,7 @@ export function PresetProvider({ children }: { children: ReactNode }) {
   // Load preset from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('ui-preset') as PresetMode;
-    if (saved && ['simple', 'enhanced', 'dynamic', 'minimal', 'cosmic'].includes(saved)) {
+    if (saved && ['simple', 'enhanced', 'dynamic', 'minimal', 'cosmic', 'quantum'].includes(saved)) {
       setPresetState(saved);
     }
   }, []);

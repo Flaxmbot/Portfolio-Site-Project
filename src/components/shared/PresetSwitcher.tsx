@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Palette, Sparkles, Zap, Settings } from 'lucide-react';
+import { Palette, Sparkles, Zap, Settings, Atom } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import * as Popover from '@radix-ui/react-popover';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
-export type PresetMode = 'simple' | 'enhanced' | 'dynamic' | 'minimal' | 'cosmic';
+export type PresetMode = 'simple' | 'enhanced' | 'dynamic' | 'minimal' | 'cosmic' | 'quantum';
 
 interface PresetSwitcherProps {
   currentPreset: PresetMode;
@@ -50,6 +50,13 @@ const presets = [
     description: 'Starry night theme with cosmic effects',
     icon: Sparkles,
     color: 'text-indigo-500'
+  },
+  {
+    id: 'quantum' as const,
+    name: 'Quantum Flow',
+    description: 'Futuristic premium quantum animations',
+    icon: Atom,
+    color: 'text-cyan-400'
   }
 ];
 

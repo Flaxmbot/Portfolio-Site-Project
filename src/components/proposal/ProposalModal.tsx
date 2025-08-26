@@ -1,15 +1,16 @@
 "use client";
 
 import { Proposal } from "@/types";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, Calendar, DollarSign } from "lucide-react";
+import { X } from "lucide-react";
+import { ProfessionalProposalDisplay } from "./ProfessionalProposalDisplay";
 
 interface ProposalModalProps {
   proposal: Proposal | null;
@@ -19,6 +20,23 @@ interface ProposalModalProps {
 
 export function ProposalModal({ proposal, open, onClose }: ProposalModalProps) {
   if (!proposal) return null;
+
+  // Try to parse the generated proposal as JSON, fallback to plain text
+  let parsedProposal = null;
+  try {
+    parsedProposal = JSON.parse(proposal.generatedProposal);
+  } catch (e) {
+    // If parsing fails, use the proposal as plain text
+    parsedProposal = {
+      proposalTitle: proposal.projectName,
+      sections: [
+        {
+          title: "Introduction",
+          content: proposal.generatedProposal
+        }
+      ]
+    };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -36,38 +54,14 @@ export function ProposalModal({ proposal, open, onClose }: ProposalModalProps) {
         </DialogHeader>
         
         <div className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-2 text-primary">Project Details</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Timeline: {proposal.projectTimeline}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>Budget: {proposal.projectBudget}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-lg mb-2 text-primary">Project Goals</h3>
-              <p className="text-muted-foreground">{proposal.projectGoals}</p>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold text-lg mb-2 text-primary">Project Description</h3>
-            <p className="text-muted-foreground">{proposal.projectDescription}</p>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold text-lg mb-2 text-primary">Generated Proposal</h3>
-            <div className="bg-muted p-4 rounded-lg">
-              <p className="whitespace-pre-wrap">{proposal.generatedProposal}</p>
-            </div>
-          </div>
+          <ProfessionalProposalDisplay
+            proposalTitle={parsedProposal.proposalTitle}
+            sections={parsedProposal.sections}
+            clientName={proposal.clientName}
+            projectName={proposal.projectName}
+            projectBudget={proposal.projectBudget}
+            projectTimeline={proposal.projectTimeline}
+          />
           
           <div className="text-sm text-muted-foreground">
             Created: {proposal.createdAt.toLocaleDateString()}

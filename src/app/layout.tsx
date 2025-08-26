@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/hooks/use-auth';
 import { PresetProvider } from '@/hooks/use-preset';
 import { GlobalPresetSwitcher } from '@/components/shared/GlobalPresetSwitcher';
+import { QuantumCursor } from '@/components/shared/QuantumCursor';
 
 export const metadata: Metadata = {
   title: 'Aether Portfolio',
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body className={cn("font-body antialiased min-h-screen flex flex-col bg-background")}>
         <AuthProvider>
           <PresetProvider>
+            <QuantumCursor />
             <Navbar />
             <main className="flex-grow">{children}</main>
             <Footer />

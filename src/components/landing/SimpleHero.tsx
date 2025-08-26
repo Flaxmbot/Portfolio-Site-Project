@@ -6,9 +6,39 @@ import { usePreset } from "@/hooks/use-preset";
 import { AnimatedHeading } from "../shared/AnimatedHeading";
 import { MagneticButton } from "../shared/MagneticButton";
 import { EnhancedHero } from "./EnhancedHero";
+import { QuantumBackground } from "../shared/QuantumBackground";
+import { QuantumButton } from "../shared/QuantumButton";
+import { QuantumText } from "../shared/QuantumText";
 
 export function SimpleHero() {
   const { isEnhanced, isDynamic, preset } = usePreset();
+
+  if (preset === 'quantum') {
+    return (
+      <QuantumBackground className="text-center py-28 md:py-40 min-h-[80vh] flex flex-col justify-center items-center">
+        <div className="container mx-auto px-4 z-10">
+          <div className="mb-6">
+            <QuantumText variant="heading">
+              Aether Portfolio
+            </QuantumText>
+          </div>
+          <QuantumText variant="subheading" className="mt-6 max-w-3xl mx-auto">
+            Crafting <span className="text-cyan-400 font-semibold">Ideas</span> into Digital <span className="text-magenta-400 font-semibold">Impact</span>
+          </QuantumText>
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <QuantumButton href="/projects" variant="primary">
+              Explore Our Work
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </QuantumButton>
+            <QuantumButton href="/proposal" variant="secondary">
+              Generate Proposal
+              <MoveRight className="ml-2 h-5 w-5" />
+            </QuantumButton>
+          </div>
+        </div>
+      </QuantumBackground>
+    );
+  }
 
   if (preset === 'cosmic') {
     return <EnhancedHero />;
