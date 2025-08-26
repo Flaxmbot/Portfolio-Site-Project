@@ -5,9 +5,14 @@ import { ArrowRight, MoveRight } from "lucide-react";
 import { usePreset } from "@/hooks/use-preset";
 import { AnimatedHeading } from "../shared/AnimatedHeading";
 import { MagneticButton } from "../shared/MagneticButton";
+import { EnhancedHero } from "./EnhancedHero";
 
 export function SimpleHero() {
-  const { isEnhanced, isDynamic } = usePreset();
+  const { isEnhanced, isDynamic, preset } = usePreset();
+
+  if (preset === 'cosmic') {
+    return <EnhancedHero />;
+  }
 
   if (isEnhanced) {
     return (
