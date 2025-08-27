@@ -501,10 +501,10 @@ export default function Home() {
         >
           <Suspense fallback={<div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl animate-pulse"></div>}>
             <LazySpline
-              scene="https://my.spline.design/robotfollowcursorforlandingpage-FaQa6C7fo1R9PCl7wbNT8rpT/"
+              scene="https://prod.spline.design/LVXH37kcZ-p6bYeW/scene.splinecode"
               className="w-full h-full"
               onLoad={handleSplineLoad}
-              style={{ 
+              style={{
                 pointerEvents: 'none',
                 transform: 'translateZ(0)',
                 backfaceVisibility: 'hidden',
