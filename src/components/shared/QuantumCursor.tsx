@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { usePreset } from '@/hooks/use-preset';
 
 interface CursorTrail {
   id: number;
@@ -12,87 +13,131 @@ interface CursorTrail {
 }
 
 export function QuantumCursor() {
+  const { preset } = usePreset();
   const [trails, setTrails] = useState<CursorTrail[]>([]);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const trailId = useRef(0);
-  const lastPositions = useRef<{ x: number; y: number }[]>([]);
   
+  // Use motion values for smooth cursor following
+  const cursorX = useMotionValue(0);
+  const cursorY = useMotionValue(0);
+  
+  // Add spring animation for ultra-fast, ultra-smooth following
+  const springX = useSpring(cursorX, { stiffness: 800, damping: 30, mass: 0.05 });
+  const springY = useSpring(cursorY, { stiffness: 800, damping: 30, mass: 0.05 });
+  
+  // Hide quantum cursor for now
+  const shouldShow = false; // preset === 'quantum' || preset === 'cosmic' || preset === 'enhanced';
+  
+  // Optimized mouse move handler with throttling
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!shouldShow) return;
+    
+    // Update motion values for smooth cursor following
+    cursorX.set(e.clientX);
+    cursorY.set(e.clientY);
+    setIsVisible(true);
+    
+    // Debug log to verify events are firing (uncomment to debug)
+    // console.log('Quantum cursor move:', e.clientX, e.clientY, 'shouldShow:', shouldShow);
+  }, [shouldShow, cursorX, cursorY]);
+
+  // Optimized trail creation with throttling
+  const handleTrailCreation = useCallback((e: MouseEvent) => {
+    if (!shouldShow) return;
+    
+    // Create new trail with enhanced visibility
+    const newTrail: CursorTrail = {
+      id: trailId.current++,
+      x: e.clientX,
+      y: e.clientY,
+      size: Math.random() * 4 + 3, // Slightly larger trails
+      opacity: Math.random() * 0.4 + 0.2 // More visible trails
+    };
+    
+    setTrails(prev => {
+      // Limit trails to improve performance
+      const newTrails = [...prev, newTrail];
+      return newTrails.length > 8 ? newTrails.slice(-8) : newTrails;
+    });
+    
+    // Remove trail after shorter animation for more responsive feel
+    setTimeout(() => {
+      setTrails(prev => prev.filter(trail => trail.id !== newTrail.id));
+    }, 500);
+  }, [shouldShow]);
+
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const newPosition = { x: e.clientX, y: e.clientY };
-      setPosition(newPosition);
-      setIsVisible(true);
+    if (!shouldShow) {
+      setIsVisible(false);
+      setTrails([]);
+      return;
+    }
+
+    // Don't hide default cursor - let both cursors be visible
+
+    let lastTrailTime = 0;
+    
+    const throttledMouseMove = (e: MouseEvent) => {
+      handleMouseMove(e);
       
-      // Add to last positions
-      lastPositions.current.push(newPosition);
-      if (lastPositions.current.length > 10) {
-        lastPositions.current.shift();
+      // Throttle trail creation for ultra-fast responsiveness
+      const now = performance.now();
+      if (now - lastTrailTime > 40) { // Further reduced to 40ms for ultra-fast trail creation
+        lastTrailTime = now;
+        handleTrailCreation(e);
       }
-      
-      // Create new trail
-      const newTrail: CursorTrail = {
-        id: trailId.current++,
-        x: e.clientX,
-        y: e.clientY,
-        size: Math.random() * 10 + 5,
-        opacity: Math.random() * 0.5 + 0.3
-      };
-      
-      setTrails(prev => [...prev, newTrail]);
-      
-      // Remove trail after animation
-      setTimeout(() => {
-        setTrails(prev => prev.filter(trail => trail.id !== newTrail.id));
-      }, 1000);
     };
     
     const handleMouseLeave = () => {
       setIsVisible(false);
     };
     
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
+    const handleMouseEnter = () => {
+      setIsVisible(true);
+    };
+    
+    // Use passive listeners for better performance and attach to window for global coverage
+    window.addEventListener('mousemove', throttledMouseMove, { passive: true });
+    document.addEventListener('mouseleave', handleMouseLeave, { passive: true });
+    document.addEventListener('mouseenter', handleMouseEnter, { passive: true });
     
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('mousemove', throttledMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseenter', handleMouseEnter);
     };
-  }, []);
+  }, [shouldShow, handleMouseMove, handleTrailCreation]);
   
-  // Calculate velocity for size effect
-  const velocity = lastPositions.current.length > 1 ? 
-    Math.sqrt(
-      Math.pow(lastPositions.current[lastPositions.current.length - 1].x - lastPositions.current[0].x, 2) +
-      Math.pow(lastPositions.current[lastPositions.current.length - 1].y - lastPositions.current[0].y, 2)
-    ) / 10 : 0;
+  // Don't render if not in quantum/cosmic mode
+  if (!shouldShow) return null;
   
   return (
-    <>
+    <div className="quantum-cursor-container">
       {/* Cursor trails */}
       {trails.map(trail => (
         <motion.div
           key={trail.id}
-          className="fixed pointer-events-none rounded-full z-50"
+          className="fixed pointer-events-none rounded-full quantum-cursor transform-gpu will-change-transform"
           style={{
-            left: trail.x,
-            top: trail.y,
+            x: trail.x - trail.size / 2,
+            y: trail.y - trail.size / 2,
             width: trail.size,
             height: trail.size,
             background: `radial-gradient(circle, rgba(0, 255, 255, ${trail.opacity}), transparent)`,
-            transform: 'translate(-50%, -50%)',
+            zIndex: 99999
           }}
           initial={{ 
             scale: 0, 
             opacity: trail.opacity 
           }}
           animate={{ 
-            scale: [0, 1, 0.5],
+            scale: [0, 1, 0.8],
             opacity: 0
           }}
           transition={{ 
-            duration: 1, 
-            ease: "easeOut" 
+            duration: 0.5, 
+            ease: [0.25, 0.46, 0.45, 0.94]
           }}
         />
       ))}
@@ -100,29 +145,45 @@ export function QuantumCursor() {
       {/* Main cursor */}
       {isVisible && (
         <motion.div
-          className="fixed pointer-events-none rounded-full z-50 border-2 border-cyan-400"
+          className="fixed pointer-events-none rounded-full quantum-cursor border border-cyan-400/60 transform-gpu will-change-transform"
           style={{
-            left: position.x,
-            top: position.y,
-            width: 20 + velocity,
-            height: 20 + velocity,
-            transform: 'translate(-50%, -50%)',
-            background: 'radial-gradient(circle, rgba(0, 255, 255, 0.2), transparent 70%)'
+            x: springX,
+            y: springY,
+            width: 16,
+            height: 16,
+            translateX: '-50%',
+            translateY: '-50%',
+            background: 'radial-gradient(circle, rgba(0, 255, 255, 0.25), transparent 70%)',
+            backdropFilter: 'blur(1px)',
+            zIndex: 99999
           }}
-          initial={{ scale: 0.8 }}
+          initial={{ scale: 0 }}
           animate={{ 
-            scale: [1, 1.2, 1],
+            scale: 1,
           }}
+          exit={{ scale: 0 }}
           transition={{ 
-            duration: 0.5, 
-            repeat: Infinity,
-            ease: "easeInOut"
+            scale: { duration: 0.1, ease: "easeOut" }
           }}
         >
-          {/* Inner glow */}
-          <div className="absolute inset-0 rounded-full bg-cyan-400/30 animate-pulse" />
+          {/* Inner glow with optimized animation */}
+          <motion.div 
+            className="absolute inset-0 rounded-full bg-cyan-400/20" 
+            animate={{ 
+              scale: [1, 1.3, 1],
+              opacity: [0.3, 0.1, 0.3]
+            }}
+            transition={{ 
+              duration: 1.5, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          {/* Center dot */}
+          <div className="absolute inset-0 m-auto w-2 h-2 rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50" />
         </motion.div>
       )}
-    </>
+    </div>
   );
 }

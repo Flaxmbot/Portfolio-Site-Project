@@ -19,6 +19,7 @@ export function AnimatedBackground({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   const timeRef = useRef<number>(0);
+  const lastFrameTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -54,26 +55,26 @@ export function AnimatedBackground({
       
       // If preset is provided, use preset-specific particle initialization
       if (preset) {
-        // Different particle counts for different presets
+        // Further reduced particle counts for better performance
         let particleCount;
         switch (preset) {
           case 'simple':
-            particleCount = 20; // Fewer particles for simple preset
+            particleCount = 10; // Fewer particles for simple preset
             break;
           case 'enhanced':
-            particleCount = 60; // More particles for enhanced preset
+            particleCount = 30; // Reduced particles for enhanced preset
             break;
           case 'dynamic':
-            particleCount = 50;
+            particleCount = 25; // Reduced particles for dynamic preset
             break;
           case 'minimal':
-            particleCount = 15; // Very few particles for minimal preset
+            particleCount = 5; // Very few particles for minimal preset
             break;
           case 'cosmic':
-            particleCount = 45;
+            particleCount = 20; // Reduced particles for cosmic preset
             break;
           default:
-            particleCount = 40;
+            particleCount = 25;
         }
         
         for (let i = 0; i < particleCount; i++) {
@@ -132,23 +133,23 @@ export function AnimatedBackground({
         }
       } else {
         // Fallback to variant-based initialization
-        // Different particle counts for different variants
+        // Further reduced particle counts for better performance
         let particleCount;
         switch (variant) {
           case 'particles':
-            particleCount = 50;
+            particleCount = 25;
             break;
           case 'gradient':
-            particleCount = 30;
+            particleCount = 15;
             break;
           case 'waves':
-            particleCount = 40;
+            particleCount = 20;
             break;
           case 'geometric':
-            particleCount = 35;
+            particleCount = 15;
             break;
           default:
-            particleCount = 40;
+            particleCount = 20;
         }
         
         for (let i = 0; i < particleCount; i++) {
@@ -283,17 +284,17 @@ export function AnimatedBackground({
           const dy = particle.y - otherParticle.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (distance < 120) {
+          if (distance < 80) { // Reduced connection distance for better performance
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
             
             // Calculate connection opacity based on distance and particle opacities
-            const connectionOpacity = 0.15 * (1 - distance / 120) *
+            const connectionOpacity = 0.1 * (1 - distance / 80) * // Reduced opacity
               ((particle.opacity + otherParticle.opacity) / 2);
               
             ctx.strokeStyle = `hsla(${(particle.hue + otherParticle.hue) / 2}, 70%, 60%, ${connectionOpacity})`;
-            ctx.lineWidth = 0.8 * (1 - distance / 120);
+            ctx.lineWidth = 0.5 * (1 - distance / 80); // Thinner lines
             ctx.stroke();
           }
         });
@@ -566,18 +567,18 @@ export function AnimatedBackground({
           const dy = particle.y - otherParticle.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
-          // Closer connection distance for enhanced preset
-          if (distance < 150) {
+          // Reduced connection distance for enhanced preset
+          if (distance < 100) {
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(otherParticle.x, otherParticle.y);
             
-            // Higher opacity connections
-            const connectionOpacity = 0.25 * (1 - distance / 150) *
+            // Lower opacity connections for better performance
+            const connectionOpacity = 0.15 * (1 - distance / 100) *
               ((particle.opacity + otherParticle.opacity) / 2);
               
             ctx.strokeStyle = `hsla(${(particle.hue + otherParticle.hue) / 2}, 70%, 60%, ${connectionOpacity})`;
-            ctx.lineWidth = 1.2 * (1 - distance / 150);
+            ctx.lineWidth = 0.8 * (1 - distance / 100);
             ctx.stroke();
           }
         });
@@ -781,7 +782,14 @@ export function AnimatedBackground({
     };
 
     
-        const animate = () => {
+        const animate = (timestamp: number) => {
+          // Limit to ~30fps to reduce CPU usage
+          if (timestamp - lastFrameTimeRef.current < 30) {
+            animationRef.current = requestAnimationFrame(animate);
+            return;
+          }
+          
+          lastFrameTimeRef.current = timestamp;
           timeRef.current = Date.now() * 0.001; // Update time reference
           
           // If preset is provided, use preset-specific animations
@@ -831,7 +839,7 @@ export function AnimatedBackground({
           animationRef.current = requestAnimationFrame(animate);
         };
     initParticles();
-    animate();
+    animate(0);
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);

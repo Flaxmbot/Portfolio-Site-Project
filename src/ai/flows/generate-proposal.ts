@@ -22,7 +22,11 @@ const GenerateProposalInputSchema = z.object({
 export type GenerateProposalInput = z.infer<typeof GenerateProposalInputSchema>;
 
 const GenerateProposalOutputSchema = z.object({
-  proposalOutline: z.string().describe('A detailed outline of the proposal.'),
+  proposalTitle: z.string().describe('The title of the proposal.'),
+  sections: z.array(z.object({
+    title: z.string().describe('The title of the section.'),
+    content: z.string().describe('The content of the section.')
+  })).describe('An array of sections with titles and content.'),
 });
 export type GenerateProposalOutput = z.infer<typeof GenerateProposalOutputSchema>;
 
@@ -51,7 +55,7 @@ const prompt = ai.definePrompt({
   name: 'generateProposalPrompt',
   input: {schema: GenerateProposalInputSchema},
   output: {schema: GenerateProposalOutputSchema},
-  prompt: `You are an expert proposal writer. Your job is to take the project details provided and create a comprehensive, professional proposal outline.
+  prompt: `You are an expert proposal writer. Your job is to take the project details provided and create a comprehensive, professional proposal in a structured format.
 
   Client Name: {{{clientName}}}
   Project Name: {{{projectName}}}
@@ -60,35 +64,32 @@ const prompt = ai.definePrompt({
   Project Timeline: {{{projectTimeline}}}
   Project Budget: {{{projectBudget}}}
 
-  Based on the information above, generate a detailed proposal outline that is clear, concise, and persuasive. 
+  Generate a professional proposal with the following structure:
+
+  Proposal Title: "Professional Project Proposal for [Project Name]"
   
-  Structure the proposal with the following sections and content:
+  Sections:
+  1. Executive Summary - Brief overview and value proposition
+  2. Project Understanding - Demonstration of understanding client needs and project requirements
+  3. Proposed Solution - Detailed technical approach and methodology
+  4. Timeline & Milestones - Structured project timeline with key deliverables
+  5. Investment & Budget - Clear budget breakdown with payment terms
+  6. Why Choose Us - Our expertise and commitment to success
+  7. Next Steps - Clear call to action and contact information
 
-  1. Introduction
-  Briefly introduce our company and our expertise in relevant technologies and solutions. Express enthusiasm for the client's project. State the purpose of the proposal: to outline our understanding, proposed solution, timeline, and budget.
+  CRITICAL REQUIREMENTS:
+  1. Return ONLY valid JSON with proposalTitle and sections array - no additional text or explanations
+  2. Use professional language without brackets, placeholders, or template text
+  3. Make content specific to the client and project details provided
+  4. Replace all placeholder content with real, tailored information
+  5. Each section should be 2-4 substantial paragraphs of professional prose
+  6. Reference specific client name, project name, and requirements throughout
+  7. Budget section should reference the provided budget range
+  8. Timeline should align with the provided timeline
+  9. Use industry-appropriate technical terms and methodologies
+  10. End with concrete next steps and professional contact approach
 
-  2. Project Understanding
-  Demonstrate clear understanding of the client's vision and requirements. Highlight the key project goals and target audience. Acknowledge the importance of specific technical requirements mentioned. Restate the project requirements based on the provided information.
-
-  3. Proposed Solution
-  Present a comprehensive plan for developing the solution. Detail the technologies and methodologies we will employ. Describe the key features and functionality. Explain integration approaches and technical architecture. Emphasize user-friendly design and intuitive interface. Address scalability and maintainability considerations.
-
-  4. Timeline
-  Provide a detailed project timeline spanning the specified duration. Include key milestones and deliverables for each phase including requirements gathering, development, testing, and deployment. Account for potential contingencies and buffer time.
-
-  5. Budget
-  Present a clear and transparent breakdown of the project budget. Specify costs associated with each stage of development. Justify the budget allocation and demonstrate value for money. Outline payment terms and conditions.
-
-  6. Conclusion
-  Reiterate confidence in delivering a successful solution. Summarize the key benefits of our proposed approach. Express commitment to exceeding expectations and achieving project goals. Include a call to action inviting the client to move forward. Provide contact information for further discussion.
-
-  Important formatting guidelines:
-  - Use clean, professional language without parentheses, asterisks, or formatting artifacts
-  - Structure content with clear section headers
-  - Write in complete, natural paragraphs
-  - Avoid bullet points with asterisks or special characters
-  - Make the tone professional and geared towards securing the project
-  `,
+  Write as Aether Portfolio, a professional technology consultancy specializing in innovative digital solutions. Demonstrate expertise in modern web technologies, AI integration, and user experience design. Make this a compelling, professional proposal that would actually win the project.`,
 });
 
 const generateProposalFlow = ai.defineFlow(

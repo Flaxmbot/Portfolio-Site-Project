@@ -67,7 +67,7 @@ export function PresetSwitcher({ currentPreset, onPresetChange, className }: Pre
 
   return (
     <Tooltip.Provider>
-      <div className={cn('fixed bottom-6 right-6 z-50', className)}>
+      <div className={cn('fixed bottom-6 left-6 z-[99998]', className)}>
         <Popover.Root open={open} onOpenChange={setOpen}>
           <Tooltip.Root>
             <Tooltip.Trigger asChild>

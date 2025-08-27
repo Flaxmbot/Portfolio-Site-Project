@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Project, Contact, Proposal } from '@/types';
 import { useAdminData } from '@/hooks/use-admin-data';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2, FolderOpen, Users, BarChart3, UserCog, MessageSquare, FileText, Mail, Calendar, DollarSign, Eye, Trash2 } from 'lucide-react';
+import { PlusCircle, Loader2, FolderOpen, Users, BarChart3, UserCog, MessageSquare, FileText, Mail, Calendar, DollarSign, Eye, Trash2, BookOpen, File, MessageCircle } from 'lucide-react';
 import { ProjectForm } from './ProjectForm';
+import { BlogPostForm } from './BlogPostForm';
+import { ResourceForm } from './ResourceForm';
 import { ProjectList } from './ProjectList';
 import {
   Dialog,
@@ -72,9 +74,21 @@ export function AdminDashboard({ projects, loading }: AdminDashboardProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'projects' | 'users' | 'analytics' | 'contacts' | 'proposals'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'users' | 'analytics' | 'contacts' | 'proposals' | 'chat' | 'blog' | 'resources'>('projects');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  
+  // Blog posts state
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [blogPostsLoading, setBlogPostsLoading] = useState(true);
+  const [selectedBlogPost, setSelectedBlogPost] = useState<any | null>(null);
+  const [isBlogPostFormOpen, setIsBlogPostFormOpen] = useState(false);
+  
+  // Resources state
+  const [resources, setResources] = useState<any[]>([]);
+  const [resourcesLoading, setResourcesLoading] = useState(true);
+  const [selectedResource, setSelectedResource] = useState<any | null>(null);
+  const [isResourceFormOpen, setIsResourceFormOpen] = useState(false);
   
   const { idToken } = useAuth();
   
@@ -88,6 +102,50 @@ export function AdminDashboard({ projects, loading }: AdminDashboardProps) {
     setContacts,
     setProposals
   } = useAdminData();
+  
+  // Fetch blog posts
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      setBlogPostsLoading(true);
+      try {
+        const q = query(collection(db, 'blog'), orderBy('date', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const posts: any[] = [];
+        querySnapshot.forEach((doc) => {
+          posts.push({ id: doc.id, ...doc.data() });
+        });
+        setBlogPosts(posts);
+      } catch (error) {
+        console.error('Error fetching blog posts:', error);
+      } finally {
+        setBlogPostsLoading(false);
+      }
+    };
+    
+    fetchBlogPosts();
+  }, [activeTab]);
+  
+  // Fetch resources
+  useEffect(() => {
+    const fetchResources = async () => {
+      setResourcesLoading(true);
+      try {
+        const q = query(collection(db, 'resources'), orderBy('date', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const resourcesList: any[] = [];
+        querySnapshot.forEach((doc) => {
+          resourcesList.push({ id: doc.id, ...doc.data() });
+        });
+        setResources(resourcesList);
+      } catch (error) {
+        console.error('Error fetching resources:', error);
+      } finally {
+        setResourcesLoading(false);
+      }
+    };
+    
+    fetchResources();
+  }, [activeTab]);
 
   const handleEdit = (project: Project) => {
     setSelectedProject(project);
@@ -169,6 +227,28 @@ export function AdminDashboard({ projects, loading }: AdminDashboardProps) {
       ));
     } catch (error) {
       console.error('Error updating proposal status:', error);
+    }
+  };
+
+  // Delete blog post
+  const deleteBlogPost = async (postId: string) => {
+    try {
+      await deleteDoc(doc(db, 'blog', postId));
+      setBlogPosts(prev => prev.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting blog post:', error);
+      alert('Failed to delete blog post. Please try again.');
+    }
+  };
+
+  // Delete resource
+  const deleteResource = async (resourceId: string) => {
+    try {
+      await deleteDoc(doc(db, 'resources', resourceId));
+      setResources(prev => prev.filter(resource => resource.id !== resourceId));
+    } catch (error) {
+      console.error('Error deleting resource:', error);
+      alert('Failed to delete resource. Please try again.');
     }
   };
 
@@ -344,6 +424,17 @@ export function AdminDashboard({ projects, loading }: AdminDashboardProps) {
           )}
         </button>
         <button
+          onClick={() => setActiveTab('chat')}
+          className={`flex items-center px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+            activeTab === 'chat'
+              ? 'bg-background text-foreground border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+          } whitespace-nowrap`}
+        >
+          <MessageCircle className="mr-2 h-4 w-4" />
+          Chat History
+        </button>
+        <button
           onClick={() => setActiveTab('analytics')}
           className={`flex items-center px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             activeTab === 'analytics'
@@ -353,6 +444,28 @@ export function AdminDashboard({ projects, loading }: AdminDashboardProps) {
         >
           <BarChart3 className="mr-2 h-4 w-4" />
           Analytics
+        </button>
+        <button
+          onClick={() => setActiveTab('blog')}
+          className={`flex items-center px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+            activeTab === 'blog'
+              ? 'bg-background text-foreground border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+          } whitespace-nowrap`}
+        >
+          <BookOpen className="mr-2 h-4 w-4" />
+          Blog Posts
+        </button>
+        <button
+          onClick={() => setActiveTab('resources')}
+          className={`flex items-center px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+            activeTab === 'resources'
+              ? 'bg-background text-foreground border-b-2 border-primary'
+              : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+          } whitespace-nowrap`}
+        >
+          <File className="mr-2 h-4 w-4" />
+          Resources
         </button>
       </div>
 
@@ -629,6 +742,188 @@ export function AdminDashboard({ projects, loading }: AdminDashboardProps) {
                               onClick={() => handleViewProposal(proposal)}
                             >
                               View
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : activeTab === 'blog' ? (
+        <div className="space-y-6">
+          {/* Blog Posts Action Bar */}
+          <div className="flex justify-end">
+            <Dialog open={isBlogPostFormOpen} onOpenChange={setIsBlogPostFormOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {
+                  setSelectedBlogPost(null);
+                  setIsBlogPostFormOpen(true);
+                }}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add New Blog Post
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>{selectedBlogPost ? 'Edit Blog Post' : 'Add New Blog Post'}</DialogTitle>
+                </DialogHeader>
+                <BlogPostForm blogPost={selectedBlogPost} onFormSubmit={() => {
+                  setIsBlogPostFormOpen(false);
+                  setSelectedBlogPost(null);
+                }} />
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          {/* Blog Posts List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Blog Posts</CardTitle>
+              <CardDescription>Manage your blog posts</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {blogPostsLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : blogPosts.length === 0 ? (
+                <div className="text-center py-8">
+                  <BookOpen className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-medium">No blog posts found</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">Get started by creating a new blog post.</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {blogPosts.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="font-medium">{post.title}</TableCell>
+                        <TableCell>{post.author}</TableCell>
+                        <TableCell>{post.date}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => {
+                                setSelectedBlogPost(post);
+                                setIsBlogPostFormOpen(true);
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground text-destructive hover:text-destructive"
+                              onClick={() => {
+                                if (confirm('Are you sure you want to delete this blog post?')) {
+                                  deleteBlogPost(post.id);
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      ) : activeTab === 'resources' ? (
+        <div className="space-y-6">
+          {/* Resources Action Bar */}
+          <div className="flex justify-end">
+            <Dialog open={isResourceFormOpen} onOpenChange={setIsResourceFormOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {
+                  setSelectedResource(null);
+                  setIsResourceFormOpen(true);
+                }}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add New Resource
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>{selectedResource ? 'Edit Resource' : 'Add New Resource'}</DialogTitle>
+                </DialogHeader>
+                <ResourceForm resource={selectedResource} onFormSubmit={() => {
+                  setIsResourceFormOpen(false);
+                  setSelectedResource(null);
+                }} />
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          {/* Resources List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Resources</CardTitle>
+              <CardDescription>Manage your resources</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {resourcesLoading ? (
+                <div className="flex justify-center items-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : resources.length === 0 ? (
+                <div className="text-center py-8">
+                  <File className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-medium">No resources found</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">Get started by creating a new resource.</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {resources.map((resource) => (
+                      <TableRow key={resource.id}>
+                        <TableCell className="font-medium">{resource.title}</TableCell>
+                        <TableCell>{resource.category}</TableCell>
+                        <TableCell>{resource.author}</TableCell>
+                        <TableCell>{resource.date}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => {
+                                setSelectedResource(resource);
+                                setIsResourceFormOpen(true);
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground text-destructive hover:text-destructive"
+                              onClick={() => {
+                                if (confirm('Are you sure you want to delete this resource?')) {
+                                  deleteResource(resource.id);
+                                }
+                              }}
+                            >
+                              Delete
                             </button>
                           </div>
                         </TableCell>

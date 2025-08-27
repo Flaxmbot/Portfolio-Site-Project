@@ -9,10 +9,36 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { PresetProvider } from '@/hooks/use-preset';
 import { GlobalPresetSwitcher } from '@/components/shared/GlobalPresetSwitcher';
 import { QuantumCursor } from '@/components/shared/QuantumCursor';
+import { LayoutContent } from './layout-content';
+import { SmoothScrollProvider } from '@/components/shared/SmoothScrollProvider';
 
 export const metadata: Metadata = {
-  title: 'Aether Portfolio',
-  description: 'AI-Powered Marketing Portfolio',
+  title: {
+    default: 'Aether Portfolio - AI-Powered Digital Solutions',
+    template: '%s | Aether Portfolio'
+  },
+  description: 'AI-Powered Marketing Portfolio - We create exceptional digital experiences that drive real business results',
+  keywords: ['digital agency', 'web development', 'UI/UX design', 'AI integration', 'marketing portfolio'],
+  authors: [{ name: 'Aether Portfolio' }],
+  creator: 'Aether Portfolio',
+  publisher: 'Aether Portfolio',
+  robots: {
+    index: true,
+    follow: true
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://aether-portfolio.com',
+    title: 'Aether Portfolio - AI-Powered Digital Solutions',
+    description: 'We create exceptional digital experiences that drive real business results',
+    siteName: 'Aether Portfolio',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Aether Portfolio - AI-Powered Digital Solutions',
+    description: 'We create exceptional digital experiences that drive real business results',
+  },
 };
 
 export default function RootLayout({
@@ -30,12 +56,11 @@ export default function RootLayout({
       <body className={cn("font-body antialiased min-h-screen flex flex-col bg-background")}>
         <AuthProvider>
           <PresetProvider>
-            <QuantumCursor />
-            <Navbar />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-            <Toaster />
-            <GlobalPresetSwitcher />
+            <SmoothScrollProvider>
+              <LayoutContent>
+                {children}
+              </LayoutContent>
+            </SmoothScrollProvider>
           </PresetProvider>
         </AuthProvider>
       </body>

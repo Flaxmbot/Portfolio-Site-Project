@@ -11,6 +11,8 @@ interface QuantumBackgroundProps {
 export function QuantumBackground({ className, children }: QuantumBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [time, setTime] = useState(0);
+  const animationFrameIdRef = useRef<number>(0);
+  const lastFrameTimeRef = useRef<number>(0);
   
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,7 +46,7 @@ export function QuantumBackground({ className, children }: QuantumBackgroundProp
     // Initialize threads
     const initThreads = () => {
       threads.length = 0;
-      const threadCount = Math.min(100, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 5000));
+      const threadCount = Math.min(70, Math.floor((canvas.offsetWidth * canvas.offsetHeight) / 7000));
       
       for (let i = 0; i < threadCount; i++) {
         threads.push({
@@ -161,21 +163,27 @@ export function QuantumBackground({ className, children }: QuantumBackgroundProp
       });
     };
     
-    // Animation loop
-    let animationFrameId: number;
-    const animate = () => {
+    // Animation loop with frame rate limiting
+    const animate = (timestamp: number) => {
+      // Limit to ~30fps to reduce CPU usage
+      if (timestamp - lastFrameTimeRef.current < 30) {
+        animationFrameIdRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      
+      lastFrameTimeRef.current = timestamp;
       setTime(prev => prev + 0.01);
       drawThreads();
-      animationFrameId = requestAnimationFrame(animate);
+      animationFrameIdRef.current = requestAnimationFrame(animate);
     };
     
-    animate();
+    animate(0);
     
     return () => {
       window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
+      cancelAnimationFrame(animationFrameIdRef.current);
     };
-  }, [time]);
+  }, []);
   
   return (
     <div className={`relative overflow-hidden ${className || ''}`}>

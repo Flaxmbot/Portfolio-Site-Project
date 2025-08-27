@@ -12,6 +12,7 @@
     "@genkit-ai/googleai": "^1.17.1",
     "@hookform/resolvers": "^5.2.1",
     "@kombai/react-error-boundary": "^1.1.0",
+    "@splinetool/react-spline": "^4.1.0",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",

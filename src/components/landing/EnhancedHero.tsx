@@ -174,11 +174,11 @@ export function EnhancedHero() {
       
       <div className="container mx-auto px-4 z-10 relative">
         {/* Floating Title */}
-        <FloatingElement delay={0.1} amplitude={10}>
+        <div className="pointer-events-none">
           <HolographicText className="text-5xl md:text-7xl font-headline font-bold mb-6">
             Aether Portfolio
           </HolographicText>
-        </FloatingElement>
+        </div>
         
         {/* Morphing Subtitle */}
         <FloatingElement delay={0.3} amplitude={8}>

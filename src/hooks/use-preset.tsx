@@ -15,7 +15,7 @@ interface PresetContextType {
 const PresetContext = createContext<PresetContextType | undefined>(undefined);
 
 export function PresetProvider({ children }: { children: ReactNode }) {
-  const [preset, setPresetState] = useState<PresetMode>('simple');
+  const [preset, setPresetState] = useState<PresetMode>('enhanced');
 
   // Load preset from localStorage on mount
   useEffect(() => {

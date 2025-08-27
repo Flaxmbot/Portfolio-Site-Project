@@ -33,7 +33,7 @@ export function ProfessionalProposalDisplay({
         <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <CardTitle className="text-3xl font-headline text-primary">
+              <CardTitle className="text-2xl font-headline text-primary">
                 {proposalTitle}
               </CardTitle>
               {clientName && (
@@ -72,13 +72,13 @@ export function ProfessionalProposalDisplay({
 
       {/* Proposal Sections */}
       <div className="space-y-6">
-        {sections.map((section, index) => (
-          <Card 
-            key={index} 
+        {sections && sections.map((section, index) => (
+          <Card
+            key={index}
             className="border-2 border-primary/10 shadow-sm hover:shadow-md transition-shadow duration-300"
           >
             <CardHeader className="bg-muted/50">
-              <CardTitle className="text-xl font-headline text-primary flex items-center gap-2">
+              <CardTitle className="text-lg font-headline text-primary flex items-center gap-2">
                 <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm">
                   {index + 1}
                 </span>
@@ -86,12 +86,16 @@ export function ProfessionalProposalDisplay({
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="prose prose-lg max-w-none dark:prose-invert">
-                {section.content.split('\n').map((paragraph, pIndex) => (
-                  <p key={pIndex} className="mb-4 last:mb-0">
-                    {paragraph}
-                  </p>
-                ))}
+              <div className="prose max-w-none dark:prose-invert">
+                {typeof section.content === 'string' ? (
+                  section.content.split('\n').map((paragraph, pIndex) => (
+                    <p key={pIndex} className="mb-4 last:mb-0">
+                      {paragraph}
+                    </p>
+                  ))
+                ) : (
+                  <p>{JSON.stringify(section.content)}</p>
+                )}
               </div>
             </CardContent>
           </Card>

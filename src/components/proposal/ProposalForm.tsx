@@ -9,7 +9,7 @@ import { z } from "zod";
 import { handleGenerateProposal, type FormState } from "@/app/proposal/actions";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -41,7 +41,7 @@ type FormData = z.infer<typeof formSchema>;
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} size="lg" className="w-full">
+    <Button type="submit" disabled={pending} className="w-full h-12">
       {pending ? (
         <>
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -63,7 +63,11 @@ export function ProposalForm() {
   const [state, formAction] = useActionState(handleGenerateProposal, initialState);
   const [isSending, setIsSending] = useState(false);
   const [proposalSent, setProposalSent] = useState(false);
-  const [editableProposal, setEditableProposal] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableProposal, setEditableProposal] = useState({
+    proposalTitle: "",
+    sections: [] as Array<{ title: string; content: string }>
+  });
   const [formValues, setFormValues] = useState({
     clientName: "",
     projectName: "",
@@ -110,7 +114,6 @@ export function ProposalForm() {
     } catch (error) {
       console.error("Error sending proposal:", error);
       toast({
-        variant: "destructive",
         title: "Send Failed",
         description: "Failed to send proposal. Please try again.",
       });
@@ -138,7 +141,6 @@ export function ProposalForm() {
   useEffect(() => {
     if (state.message && state.message.startsWith("An unexpected error")) {
         toast({
-            variant: "destructive",
             title: "Error",
             description: state.message,
         });
@@ -161,23 +163,6 @@ export function ProposalForm() {
   }, [form]);
 
   if (state.proposal) {
-    // Try to parse the generated proposal as JSON, fallback to plain text
-    let parsedProposal = null;
-    try {
-      parsedProposal = JSON.parse(state.proposal);
-    } catch (e) {
-      // If parsing fails, use the proposal as plain text
-      parsedProposal = {
-        proposalTitle: formValues.projectName || "Project Proposal",
-        sections: [
-          {
-            title: "Introduction",
-            content: state.proposal
-          }
-        ]
-      };
-    }
-
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -191,31 +176,82 @@ export function ProposalForm() {
               <h2 className="text-2xl font-headline font-bold text-primary">Your Professional Proposal</h2>
             </div>
             
-            <div className="mb-6">
-              <ProfessionalProposalDisplay
-                proposalTitle={parsedProposal.proposalTitle}
-                sections={parsedProposal.sections}
-                clientName={formValues.clientName}
-                projectName={formValues.projectName}
-                projectBudget={formValues.projectBudget}
-                projectTimeline={formValues.projectTimeline}
-              />
-            </div>
-            
-            <Textarea
-              value={editableProposal}
-              onChange={(e) => setEditableProposal(e.target.value)}
-              className="min-h-[200px] mb-6 p-4 bg-muted/20 rounded-lg border resize-y"
-              placeholder="Edit the JSON proposal content here..."
-            />
+            {isEditing ? (
+              <div className="mb-6 space-y-4">
+                <Input
+                  value={editableProposal.proposalTitle}
+                  onChange={(e) => setEditableProposal({...editableProposal, proposalTitle: e.target.value})}
+                  className="text-2xl font-bold"
+                  placeholder="Proposal Title"
+                />
+                {editableProposal.sections.map((section, index) => (
+                  <Card key={index} className="border-2 border-primary/10">
+                    <CardHeader>
+                      <Input
+                        value={section.title}
+                        onChange={(e) => {
+                          const newSections = [...editableProposal.sections];
+                          newSections[index].title = e.target.value;
+                          setEditableProposal({...editableProposal, sections: newSections});
+                        }}
+                        className="font-bold"
+                        placeholder="Section Title"
+                      />
+                    </CardHeader>
+                    <CardContent>
+                      <Textarea
+                        value={section.content}
+                        onChange={(e) => {
+                          const newSections = [...editableProposal.sections];
+                          newSections[index].content = e.target.value;
+                          setEditableProposal({...editableProposal, sections: newSections});
+                        }}
+                        className="min-h-[150px]"
+                        placeholder="Section Content"
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+                <div className="flex gap-2">
+                  <Button onClick={() => setIsEditing(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => {
+                    // Save changes would go here
+                    setIsEditing(false);
+                  }}>
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6">
+                <ProfessionalProposalDisplay
+                  proposalTitle={editableProposal.proposalTitle}
+                  sections={editableProposal.sections}
+                  clientName={formValues.clientName}
+                  projectName={formValues.projectName}
+                  projectBudget={formValues.projectBudget}
+                  projectTimeline={formValues.projectTimeline}
+                />
+              </div>
+            )}
             
             <div className="flex flex-col sm:flex-row gap-4">
-              {!proposalSent && (
+              {!isEditing && (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="flex-1 border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                >
+                  Edit Proposal
+                </Button>
+              )}
+              
+              {!proposalSent && !isEditing && (
                 <Button
                   onClick={handleSendToFirestore}
                   disabled={isSending}
                   className="flex-1"
-                  size="lg"
                 >
                   {isSending ? (
                     <>
@@ -237,14 +273,14 @@ export function ProposalForm() {
                 </div>
               )}
               
-              <Button
-                onClick={() => window.location.reload()}
-                variant="outline"
-                className="flex-1"
-                size="lg"
-              >
-                Create Another Proposal
-              </Button>
+              {!isEditing && (
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="flex-1 border border-input bg-background hover:bg-accent hover:text-accent-foreground"
+                >
+                  Create Another Proposal
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

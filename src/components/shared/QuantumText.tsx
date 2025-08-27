@@ -5,19 +5,19 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface QuantumTextProps {
-  children: string;
+  children: React.ReactNode;
   className?: string;
   variant?: 'heading' | 'subheading' | 'body';
-  as?: keyof JSX.IntrinsicElements;
+  as?: React.ElementType;
 }
 
 export function QuantumText({
   children,
   className,
   variant = 'heading',
-  as: Component = 'h1'
+ as: Component = 'h1'
 }: QuantumTextProps) {
-  const [displayText, setDisplayText] = useState(children);
+  const [displayText, setDisplayText] = useState<React.ReactNode>(children);
   const [isMultiverse, setIsMultiverse] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -28,16 +28,26 @@ export function QuantumText({
     body: 'text-lg md:text-xl'
   };
   
-  // Multiverse versions of the text
-  const multiverseVersions = [
-    children,
-    children.split('').reverse().join(''),
-    children.split(' ').reverse().join(' '),
-    children.replace(/[aeiou]/gi, '*'),
-    children.replace(/[bcdfghjklmnpqrstvwxyz]/gi, '•')
-  ];
+  // Convert children to string for multiverse effects (only if it's a simple string)
+  const childrenAsString = typeof children === 'string' ? children :
+                         typeof children === 'number' ? String(children) : '';
+  
+  // Multiverse versions of the text (only if children is a string)
+  const multiverseVersions = childrenAsString ? [
+    childrenAsString,
+    childrenAsString.split('').reverse().join(''),
+    childrenAsString.split(' ').reverse().join(' '),
+    childrenAsString.replace(/[aeiou]/gi, '*'),
+    childrenAsString.replace(/[bcdfghjklmnpqrstvwxyz]/gi, '•')
+  ] : [children];
   
   useEffect(() => {
+    // Only set up multiverse effect if children is a string
+    if (!childrenAsString) {
+      setDisplayText(children);
+      return;
+    }
+    
     // Set up multiverse effect
     intervalRef.current = setInterval(() => {
       setIsMultiverse(true);
@@ -58,7 +68,7 @@ export function QuantumText({
         clearInterval(intervalRef.current);
       }
     };
-  }, [children]);
+  }, [children, childrenAsString]);
   
   return (
     <motion.div
@@ -73,8 +83,8 @@ export function QuantumText({
       {/* Main text with gradient */}
       <Component className={cn(
         "relative bg-clip-text text-transparent bg-gradient-to-r",
-        isMultiverse 
-          ? "from-cyan-300 via-magenta-300 to-yellow-300" 
+        isMultiverse
+          ? "from-cyan-300 via-magenta-300 to-yellow-300"
           : "from-cyan-400 via-blue-400 to-purple-400"
       )}>
         {displayText}
@@ -95,7 +105,7 @@ export function QuantumText({
       />
       
       {/* Multiverse echo effect */}
-      {isMultiverse && (
+      {isMultiverse && childrenAsString && (
         <motion.div
           className="absolute inset-0 bg-clip-text text-transparent bg-gradient-to-r from-magenta-400 via-purple-400 to-cyan-400"
           initial={{ opacity: 0 }}

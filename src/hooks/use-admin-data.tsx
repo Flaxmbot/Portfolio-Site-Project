@@ -11,6 +11,15 @@ interface User {
   createdAt?: string;
 }
 
+interface ChatMessage {
+  id: string;
+  userId: string;
+  message: string;
+  sender: 'user' | 'bot';
+  timestamp: Date;
+  sessionId: string;
+}
+
 export function useAdminData() {
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -18,6 +27,8 @@ export function useAdminData() {
   const [contactsLoading, setContactsLoading] = useState(true);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [proposalsLoading, setProposalsLoading] = useState(true);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatHistoryLoading, setChatHistoryLoading] = useState(true);
 
   const fetchAllData = async () => {
     const authHeader = await getAuthHeader();
@@ -94,6 +105,32 @@ export function useAdminData() {
     } finally {
       setProposalsLoading(false);
     }
+    
+    // Fetch chat history
+    setChatHistoryLoading(true);
+    try {
+      const response = await fetch('/api/admin/chat-history', {
+        headers: {
+          ...authHeader
+        }
+      });
+      
+      if (response.ok) {
+        const chatHistoryList = await response.json();
+        // Convert timestamps back to Date objects
+        const processedChatHistory = chatHistoryList.map((chat: any) => ({
+          ...chat,
+          timestamp: new Date(chat.timestamp)
+        }));
+        setChatHistory(processedChatHistory);
+      } else {
+        console.error('Error fetching chat history:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching chat history:', error);
+    } finally {
+      setChatHistoryLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -109,10 +146,13 @@ export function useAdminData() {
     usersLoading,
     contacts,
     contactsLoading,
-proposals,
+    proposals,
     proposalsLoading,
+    chatHistory,
+    chatHistoryLoading,
     refetchData,
     setContacts,
-    setProposals
+    setProposals,
+    setChatHistory
   };
 }

@@ -1,6 +1,7 @@
 
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -17,7 +18,7 @@ interface ProjectCardProps {
 }
 
 
-export function ProjectCard({ project, index }: ProjectCardProps) {
+export const ProjectCard = memo(function ProjectCard({ project, index }: ProjectCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const cardVariants = {
@@ -76,4 +77,4 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
       />
     </>
   );
-}
+});

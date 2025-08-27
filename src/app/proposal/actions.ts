@@ -15,7 +15,13 @@ const formSchema = z.object({
 
 export type FormState = {
   message: string | null;
-  proposal: string | null;
+  proposal: {
+    proposalTitle: string;
+    sections: Array<{
+      title: string;
+      content: string;
+    }>;
+  } | null;
   errors?: {
     clientName?: string[];
     projectName?: string[];
@@ -52,7 +58,13 @@ export async function handleGenerateProposal(
     
     return {
       message: "Proposal generated successfully!",
-      proposal: result.proposalOutline,
+      proposal: {
+        proposalTitle: result.proposalTitle,
+        sections: result.sections.map(section => ({
+          title: section.title,
+          content: section.content
+        }))
+      },
       errors: {},
     };
   } catch (error) {

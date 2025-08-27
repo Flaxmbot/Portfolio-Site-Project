@@ -14,7 +14,12 @@ import { handleLogout } from "@/app/admin/actions";
 
 const navItems = [
   { name: "Home", href: "/" },
+  { name: "About", href: "/about" },
+  { name: "Services", href: "/services" },
+  { name: "Pricing", href: "/pricing" },
   { name: "Projects", href: "/projects" },
+  { name: "Testimonials", href: "/testimonials" },
+  { name: "Blog", href: "/blog" },
   { name: "Proposal AI", href: "/proposal" },
   { name: "Contact", href: "/contact"}
 ];
